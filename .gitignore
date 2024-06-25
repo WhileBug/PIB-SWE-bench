@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Parquet files
+*.parquet
+
 # C extensions
 *.so
 
@@ -174,3 +177,5 @@ analysis/evaluation/*.csv
 analysis/evaluation/*.pdf
 data/repos/copies
 notebooks/
+/PIBBench/original_data/
+/PIBBench/pibdataset/
