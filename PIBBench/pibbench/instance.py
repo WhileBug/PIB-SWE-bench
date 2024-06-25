@@ -9,7 +9,7 @@ class Instance:
         self.placeholder_patch = placeholder_patch
         self.instance_repo = InstanceRepo(instance_id, repo_path, repo_name, base_commit, placeholder_patch)
 
-        self.repo_path = home_path+"/"+self.instance_id
+        self.full_repo_path = home_path+"/"+self.instance_id
         self.issue_path = home_path+"/"+self.instance_id+".md"
         self.pred_patch_path = home_path+"/"+self.instance_id+".patch"
         self.pred_json_path = home_path + "/" + self.instance_id + ".json"

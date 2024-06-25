@@ -4,6 +4,7 @@ from PIBBench.pibbench.utils import load_dataset
 import json
 from PIBBench.pibbench.instance import Instance
 import os
+import pandas as pd
 
 def pred_json_generate(instance_id, model_patch, model_name, pred_json_filename):
     pred_dict = {
@@ -38,23 +39,25 @@ def evaluate_one_instance(
     base_commit = instance_info["base_commit"]
     problem_statement = instance_info["problem_statement"]
     placeholder_patch = instance_info["placeholder_patch"]
-    repo_path = "tmp/" + instance_id
+
     instance = Instance(
         instance_id=instance_id,
-        repo_path=repo_path,
+        repo_path=instance_id,
         repo_name=repo_name,
         base_commit=base_commit,
         placeholder_patch=placeholder_patch,
-        home_path="tmp"
+        home_path="/Users/whilebug/Desktop/Projects/PIB-SWE-bench/PIBBench/tmp"
     )
 
-    instance.instance_repo.clone_repo()
-    instance.instance_repo.placeholder_add()
+    if os.path.exists(instance.instance_repo.repo_path):
+        print("The instance", instance.instance_id, "has been added")
+    else:
+        instance.instance_repo.clone_repo()
+        instance.instance_repo.placeholder_add()
 
     '''
     [TODO] For the prompt inject, please specify the inject_prompt when you need
     '''
-
     if inject_prompt is None:
         pass
     else:
@@ -63,7 +66,7 @@ def evaluate_one_instance(
     with open(instance.issue_path, "w+") as f:
         f.write(problem_statement)
     agent_frontend.call_agent(
-        repo_path=repo_path,
+        repo_path=instance.full_repo_path,
         issue_path=instance.issue_path
     )
     agent_frontend.collect_patch(
@@ -101,11 +104,13 @@ def evaluate_one_instance(
         traj_path=instance.pred_traj_path
     )
 
-def generate_pred_patches_pipeline(agent_name="SWE-Agent", bench_dataset_path = "PIBBench/pibdataset"):
+def pib_pipeline(agent_name="SWE-Agent", bench_dataset_path = "PIBBench/pibdataset"):
     agent_frontend = AgentFrontend(agent_type=agent_name)
     test_df = load_dataset(
-        "/Users/whilebug/Desktop/Projects/PIB-SWE-bench/PIBBench/original_data/train-00000-of-00001.parquet")
+        "/Users/whilebug/Desktop/Projects/PIB-SWE-bench/PIBBench/pibdataset/data/train-00000-of-00001.parquet")
 
     for key, instance_info in test_df.iterrows():
+        print(key, instance_info["instance_id"], "start")
         evaluate_one_instance(instance_info, agent_frontend, bench_dataset_path, agent_name)
-    os.system("pause")
+        print(key, instance_info["instance_id"], "finish")
+        os.system("pause")

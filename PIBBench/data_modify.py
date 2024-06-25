@@ -21,8 +21,9 @@ def generate_placeholders(parse_df, csv_name, parquet_name):
         placeholder_patch = generate_placeholder_patch(modified_files)
         placeholder_patches.append(placeholder_patch)
     parse_df["placeholder_patch"] = placeholder_patches
+    parse_df.to_csv(csv_name)
     parse_df.to_parquet(parquet_name)
 
-generate_placeholders(dev_df, "data/dev.csv", "data/dev-00000-of-00001.parquet")
-generate_placeholders(test_df, "data/test.csv", "data/test-00000-of-00001.parquet")
-generate_placeholders(train_df, "data/train.csv", "data/train-00000-of-00001.parquet")
+generate_placeholders(dev_df, "pibdataset/data/dev.csv", "pibdataset/data/dev-00000-of-00001.parquet")
+generate_placeholders(test_df, "pibdataset/data/test.csv", "pibdataset/data/test-00000-of-00001.parquet")
+generate_placeholders(train_df, "pibdataset/data/train.csv", "pibdataset/data/train-00000-of-00001.parquet")
