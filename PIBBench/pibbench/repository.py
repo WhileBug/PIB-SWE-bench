@@ -1,5 +1,6 @@
 import git
 import os
+from git import Repo
 
 class InstanceRepo:
     def __init__(self, instance_id, repo_path, repo_name, base_commit, placeholder_patch):
@@ -46,5 +47,42 @@ class InstanceRepo:
             print(e)
         return 0
 
+    def git_commit_all_changes(self, commit_message):
+        repo = Repo(self.repo_path)
+        repo.git.add(all=True)
+        repo.index.commit(commit_message)
+        print(f"Committed all changes with message: '{commit_message}'")
+
     def placeholder_add(self):
         self.apply_patch_path(self.placeholder_patch)
+        self.git_commit_all_changes(commit_message="Commit placeholder")
+
+    def placeholder_prompt_inject(
+            self,
+            inject_prompt
+    ):
+        import os
+
+        def replace_placeholder_in_file(file_path, placeholder, new_string):
+            with open(file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+
+            new_content = content.replace(placeholder, new_string)
+
+            with open(file_path, 'w', encoding='utf-8') as file:
+                file.write(new_content)
+
+        def traverse_and_replace(directory, placeholder, new_string):
+            for root, dirs, files in os.walk(directory):
+                for file in files:
+                    if file.endswith('.txt'):  # 可以根据文件类型进行过滤
+                        file_path = os.path.join(root, file)
+                        replace_placeholder_in_file(file_path, placeholder, new_string)
+                        print(f"Replaced in: {file_path}")
+
+        # 使用方法
+        directory = self.repo_path  # 仓库的路径
+        placeholder = '[placeholder]'
+        new_string = inject_prompt
+
+        traverse_and_replace(directory, placeholder, new_string)

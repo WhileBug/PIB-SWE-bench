@@ -15,3 +15,4 @@ class Instance:
         self.pred_json_path = home_path + "/" + self.instance_id + ".json"
         self.log_dir_path = home_path + "/" + self.instance_id+"-log"
         self.test_bed_path = home_path + "/" + self.instance_id + "-test_bed"
+        self.pred_traj_path = home_path+"/"+self.instance_id+".traj"
