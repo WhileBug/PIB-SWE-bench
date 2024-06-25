@@ -2,7 +2,7 @@ from PIBBench.pibbench.agent_frontend import AgentFrontend
 from PIBBench.pibbench.repository import InstanceRepo
 from PIBBench.pibbench.utils import load_dataset
 import json
-
+from PIBBench.pibbench.instance import Instance
 def pred_json_generate(instance_id, model_patch, model_name, pred_json_filename):
     pred_dict = {
         "instance_id": instance_id,
@@ -21,7 +21,7 @@ def evaluate_pipeline(pred_path, bench_path, log_dir, testbed):
     --testbed {testbed}
     '''
 
-def generate_pred_patches_pipeline(agent_name="SWE-Agent"):
+def generate_pred_patches_pipeline(agent_name="SWE-Agent", bench_dataset_path = "PIBBench/pibdataset"):
     agent_frontend = AgentFrontend(agent_type=agent_name)
     test_df = load_dataset(
         "/Users/whilebug/Desktop/Projects/PIB-SWE-bench/PIBBench/original_data/train-00000-of-00001.parquet")
@@ -32,39 +32,39 @@ def generate_pred_patches_pipeline(agent_name="SWE-Agent"):
         problem_statement = instance_info["problem_statement"]
         placeholder_patch = instance_info["placeholder_patch"]
         repo_path = "tmp/" + instance_id
-        instance_repo = InstanceRepo(
+        instance = Instance(
             instance_id=instance_id,
             repo_path=repo_path,
             repo_name=repo_name,
             base_commit=base_commit,
-            placeholder_patch=placeholder_patch
+            placeholder_patch=placeholder_patch,
+            home_path="tmp"
         )
-        instance_repo.clone_repo()
-        instance_repo.placeholder_add()
+        instance.instance_repo.clone_repo()
+        instance.instance_repo.placeholder_add()
 
-        issue_path = instance_id + ".md"
-        with open(issue_path, "w+") as f:
+        with open(instance.issue_path, "w+") as f:
             f.write(problem_statement)
         agent_frontend.call_agent(
             repo_path=repo_path,
-            issue_path=issue_path
+            issue_path=instance.issue_path
         )
         agent_frontend.collect_patch(
-            target_patch_path=instance_id + ".patch",
+            target_patch_path=instance.pred_patch_path,
             issue_name=instance_id
         )
-        with open(instance_id+".patch", "r") as f:
+        with open(instance.pred_patch_path, "r") as f:
             model_patch = f.read()
         pred_json_generate(
             instance_id=instance_id,
             model_patch=model_patch,
             model_name=agent_name,
-            pred_json_filename=instance_id+".json"
+            pred_json_filename=instance.pred_json_path
         )
         evaluate_pipeline(
             pred_path=instance_id+".json",
-            bench_path=instance_id+".json",
-            log_dir=instance_id+".json",
-            testbed=instance_id+".json"
+            bench_path=bench_dataset_path,
+            log_dir=instance.log_dir_path,
+            testbed=instance.test_bed_path
         )
 
