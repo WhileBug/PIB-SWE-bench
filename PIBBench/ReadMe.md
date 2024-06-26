@@ -14,13 +14,19 @@ pip install flask
 pip install pandas
 pip install pyarrow
 ```
-- SWE-Agent
+- SWE-Agent: We use SWE-agent as a flask backend service
 ```shell
 git clone https://github.com/princeton-nlp/SWE-agent.git
+conda env create -f environment.yml
+conda activate swe-agent
+pip install flask
 ```
-And follow the instructions of SWE-agent.
 
 ## 1-Use
+First, you should move the  pibbench/agent_backend.py to the main folder of the SWE-agent repository. And run
+```shell
+flask run --app agent_backend
+```
 You can run the bench by
 ```shell
 cd PIBBench
