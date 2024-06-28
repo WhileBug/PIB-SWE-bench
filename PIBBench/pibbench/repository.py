@@ -53,6 +53,12 @@ class InstanceRepo:
         else:
             shutil.copytree(self.base_repo_path, self.repo_path)
 
+    def delete_repo(
+            self
+    ):
+        if os.path.exists(self.repo_path):
+            shutil.rmtree(self.repo_path)
+
     def clone_repo(
             self
     ):

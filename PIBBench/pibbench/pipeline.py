@@ -57,7 +57,8 @@ def instance_init(
         repo_name=repo_name,
         base_commit=base_commit,
         file2line=file2line,
-        home_path=home_path
+        home_path=home_path,
+        attack_method=attack_method
     )
 
     if os.path.exists(instance.instance_repo.base_repo_path):
@@ -78,7 +79,7 @@ def instance_init(
         pass
     else:
         instance.instance_repo.placeholder_prompt_inject(inject_prompt=inject_prompt)
-        instance.instance_repo.git_commit_all_changes()
+        instance.instance_repo.git_commit_all_changes(commit_message=inject_prompt)
 
     with open(instance.issue_path, "w+") as f:
         f.write(problem_statement)
@@ -86,7 +87,7 @@ def instance_init(
 
 def agent_pipeline(agent_frontend, instance):
     agent_frontend.call_agent(
-        repo_path=instance.full_repo_path,
+        repo_path=instance.repo_path,
         issue_path=instance.issue_path
     )
     agent_frontend.collect_patch(
@@ -164,6 +165,8 @@ def evaluate_one_instance(
     evaluate_inject(
         traj_path=instance.pred_traj_path
     )
+
+    instance.instance_repo.delete_repo()
 
 def pib_pipeline(agent_name="SWE-Agent", bench_dataset_path = "PIBBench/pibdataset"):
     agent_frontend = AgentFrontend(agent_type=agent_name)
