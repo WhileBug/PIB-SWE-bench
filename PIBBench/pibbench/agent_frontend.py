@@ -7,7 +7,7 @@ class AgentFrontend:
     def __init__(
             self,
             agent_type="SWE-Agent",
-            model_name="azure:gpt4",
+            model_name="ollama:llama3",#="azure:gpt4",
             agent_path:str="/Users/whilebug/Desktop/Projects/SWE-agent",
             username:str="whilebug"
     ):
