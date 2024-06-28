@@ -40,14 +40,6 @@ def instance_init(
         home_path,
         inject_prompt=None
 ):
-    print(
-        instance_id,
-        repo_name,
-        base_commit,
-        file2line,
-        problem_statement,
-        home_path
-    )
     instance = Instance(
         instance_id=instance_id,
         repo_path=home_path+"/"+instance_id,
