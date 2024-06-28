@@ -35,16 +35,35 @@ class InstanceRepo:
         else:
             shutil.copytree(self.repo_path, self.base_repo_path)
 
+    def clone_repo_base(
+            self
+    ):
+        if os.path.exists(self.base_repo_path):
+            print("repo:", self.base_repo_path, "already cloned")
+        else:
+            repo_url = "https://github.com/" + self.repo_name
+            repo = git.Repo.clone_from(repo_url, self.base_repo_path)
+            repo.git.checkout(self.base_commit)
+
+    def copy_repo_from_base(
+            self
+    ):
+        if os.path.exists(self.repo_path):
+            pass
+        else:
+            shutil.copytree(self.base_repo_path, self.repo_path)
+
     def clone_repo(
             self
     ):
         if os.path.exists(self.repo_path):
-            print("repo:", self.repo_path, "already cloned")
+            pass
+            #print("repo:", self.repo_path, "already cloned")
         else:
             repo_url = "https://github.com/"+self.repo_name
             repo = git.Repo.clone_from(repo_url, self.repo_path)
             repo.git.checkout(self.base_commit)
-            self.copy_base()
+            #self.copy_base()
 
     def apply_patch_path(self, patch_path):
         print(self.repo_path, "!!!!!!!!!!")
@@ -87,6 +106,11 @@ class InstanceRepo:
 
     def placeholder_add(self):
         placeholder_patch_string = insert_placeholder(self.repo_path, self.file2line)
+        self.apply_patch_string(placeholder_patch_string)
+        self.git_commit_all_changes(commit_message="Commit placeholder")
+
+    def base_placeholder_add(self):
+        placeholder_patch_string = insert_placeholder(self.base_repo_path, self.file2line)
         self.apply_patch_string(placeholder_patch_string)
         self.git_commit_all_changes(commit_message="Commit placeholder")
 
