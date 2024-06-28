@@ -20,14 +20,14 @@ def apply_patch(repo_path, patch_path):
         print(result.stderr)
 
 class InstanceRepo:
-    def __init__(self, instance_id, repo_path, repo_name, base_commit, file2line):
+    def __init__(self, instance_id, repo_path, repo_name, base_commit, file2line, base_repo_path):
         self.instance_id = instance_id
         self.repo_path = repo_path
         self.repo_name = repo_name
         self.base_commit = base_commit
         self.file2line = file2line
 
-        self.base_repo_path = repo_path+"-base"
+        self.base_repo_path = base_repo_path
 
     def copy_base(self):
         if os.path.exists(self.base_repo_path):
@@ -123,23 +123,23 @@ class InstanceRepo:
         def replace_placeholder_in_file(file_path, placeholder, new_string):
             with open(file_path, 'r', encoding='utf-8') as file:
                 content = file.read()
-
-            new_content = content.replace(placeholder, new_string)
-
-            with open(file_path, 'w', encoding='utf-8') as file:
-                file.write(new_content)
+            if placeholder in content:
+                new_content = content.replace(placeholder, new_string)
+                with open(file_path, 'w', encoding='utf-8') as file:
+                    file.write(new_content)
+                print(f"Replaced in: {file_path}")
 
         def traverse_and_replace(directory, placeholder, new_string):
             for root, dirs, files in os.walk(directory):
                 for file in files:
-                    if file.endswith('.txt'):  # 可以根据文件类型进行过滤
+                    if file.endswith('.py'):  # 可以根据文件类型进行过滤
                         file_path = os.path.join(root, file)
                         replace_placeholder_in_file(file_path, placeholder, new_string)
-                        print(f"Replaced in: {file_path}")
+                        #print(f"Replaced in: {file_path}")
 
         # 使用方法
         directory = self.repo_path  # 仓库的路径
-        placeholder = '[placeholder]'
+        placeholder = '[PLACEHOLDER]'
         new_string = inject_prompt
 
         traverse_and_replace(directory, placeholder, new_string)

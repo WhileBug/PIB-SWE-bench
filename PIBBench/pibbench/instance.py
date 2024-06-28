@@ -7,7 +7,14 @@ class Instance:
         self.repo_name = repo_name
         self.base_commit = base_commit
         self.file2line = file2line
-        self.instance_repo = InstanceRepo(instance_id, repo_path, repo_name, base_commit, file2line)
+        self.instance_repo = InstanceRepo(
+            instance_id,
+            repo_path,
+            repo_name,
+            base_commit,
+            file2line,
+            base_repo_path = home_path+"/"+instance_id+"-base"
+        )
 
         self.full_repo_path = home_path+"/"+self.instance_id
         self.issue_path = home_path+"/"+self.instance_id+".md"
