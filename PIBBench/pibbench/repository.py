@@ -1,14 +1,39 @@
 import git
 import os
 from git import Repo
+import shutil
+import subprocess
+from PIBBench.pibbench.utils import insert_placeholder
+
+def apply_patch(repo_path, patch_path):
+    print("repo_path, ", repo_path, "patch path", patch_path)
+    # Change to the repository directory
+    subprocess.run(['cd', repo_path], check=True, shell=True)
+
+    # Apply the patch
+    result = subprocess.run(['git', 'apply', patch_path], capture_output=True, text=True)
+
+    if result.returncode == 0:
+        print("Patch applied successfully.")
+    else:
+        print("Failed to apply patch:")
+        print(result.stderr)
 
 class InstanceRepo:
-    def __init__(self, instance_id, repo_path, repo_name, base_commit, placeholder_patch):
+    def __init__(self, instance_id, repo_path, repo_name, base_commit, file2line):
         self.instance_id = instance_id
         self.repo_path = repo_path
         self.repo_name = repo_name
         self.base_commit = base_commit
-        self.placeholder_patch = placeholder_patch
+        self.file2line = file2line
+
+        self.base_repo_path = repo_path+"-base"
+
+    def copy_base(self):
+        if os.path.exists(self.base_repo_path):
+            pass
+        else:
+            shutil.copytree(self.repo_path, self.base_repo_path)
 
     def clone_repo(
             self
@@ -19,14 +44,21 @@ class InstanceRepo:
             repo_url = "https://github.com/"+self.repo_name
             repo = git.Repo.clone_from(repo_url, self.repo_path)
             repo.git.checkout(self.base_commit)
+            self.copy_base()
 
     def apply_patch_path(self, patch_path):
+        print(self.repo_path, "!!!!!!!!!!")
         repo = git.Repo(self.repo_path)
         if repo.is_dirty():
             raise Exception("Uncommited changes")
         patch_path = os.path.abspath(patch_path)
         try:
-            repo.git.apply(patch_path)
+            #repo.git.apply(patch_path)
+            #with open(patch_path, 'r') as file:
+            #    patch_content = file.read()
+            #repo.git.execute(['git', 'apply'], input=patch_path)
+            #result = subprocess.run(['git', 'apply', patch_path], cwd=self.repo_path, capture_output=True, text=True)
+            apply_patch(self.repo_path, patch_path)
         except Exception as e:
             print(e)
         return 0
@@ -54,7 +86,8 @@ class InstanceRepo:
         print(f"Committed all changes with message: '{commit_message}'")
 
     def placeholder_add(self):
-        self.apply_patch_path(self.placeholder_patch)
+        placeholder_patch_string = insert_placeholder(self.repo_path, self.file2line)
+        self.apply_patch_string(placeholder_patch_string)
         self.git_commit_all_changes(commit_message="Commit placeholder")
 
     def placeholder_prompt_inject(

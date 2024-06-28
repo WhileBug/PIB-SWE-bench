@@ -18,6 +18,7 @@ def generate_placeholders(parse_df, csv_name, parquet_name):
         with open("temp.patch", "w+") as f:
             f.write(patch)
         modified_files = parse_patch("temp.patch")
+        #placeholder_patch = generate_placeholder_patch(modified_files)
         placeholder_patch = generate_placeholder_patch(modified_files)
         placeholder_patches.append(placeholder_patch)
     parse_df["placeholder_patch"] = placeholder_patches

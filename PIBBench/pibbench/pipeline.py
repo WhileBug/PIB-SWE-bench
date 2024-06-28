@@ -1,6 +1,6 @@
 from PIBBench.pibbench.agent_frontend import AgentFrontend
 from PIBBench.pibbench.repository import InstanceRepo
-from PIBBench.pibbench.utils import load_dataset
+from PIBBench.pibbench.utils import load_dataset, parse_patch, parse_patch_str
 import json
 from PIBBench.pibbench.instance import Instance
 import os
@@ -35,17 +35,25 @@ def instance_init(
         instance_id,
         repo_name,
         base_commit,
-        placeholder_patch,
+        file2line,
         problem_statement,
         home_path,
         inject_prompt=None
 ):
+    print(
+        instance_id,
+        repo_name,
+        base_commit,
+        file2line,
+        problem_statement,
+        home_path
+    )
     instance = Instance(
         instance_id=instance_id,
-        repo_path=instance_id,
+        repo_path=home_path+"/"+instance_id,
         repo_name=repo_name,
         base_commit=base_commit,
-        placeholder_patch=placeholder_patch,
+        file2line=file2line,
         home_path=home_path
     )
 
@@ -84,23 +92,24 @@ def evaluate_one_instance(
         agent_frontend:AgentFrontend,
         bench_dataset_path:str,
         agent_name:str,
-        inject_prompt:str=None
+        inject_prompt:str=None,
+        file2line:dict=None
 ):
     repo_name = instance_info["repo"]
     instance_id = instance_info["instance_id"]
     base_commit = instance_info["base_commit"]
     problem_statement = instance_info["problem_statement"]
-    placeholder_patch = instance_info["placeholder_patch"]
     home_path = "/Users/whilebug/Desktop/Projects/PIB-SWE-bench/PIBBench/tmp"
 
     '''
     1. Initialize an instance
     '''
+    print("Step 1/5: Start to initialize an instance...")
     instance = instance_init(
         instance_id,
         repo_name,
         base_commit,
-        placeholder_patch,
+        file2line,
         problem_statement,
         home_path,
         inject_prompt=inject_prompt
@@ -150,6 +159,7 @@ def pib_pipeline(agent_name="SWE-Agent", bench_dataset_path = "PIBBench/pibdatas
 
     for key, instance_info in test_df.iterrows():
         print(key, instance_info["instance_id"], "start")
-        evaluate_one_instance(instance_info, agent_frontend, bench_dataset_path, agent_name)
+        file2line = parse_patch_str(instance_info["patch"])
+        evaluate_one_instance(instance_info, agent_frontend, bench_dataset_path, agent_name, file2line=file2line)
         print(key, instance_info["instance_id"], "finish")
         os.system("pause")
