@@ -7,7 +7,7 @@ class AgentFrontend:
     def __init__(
             self,
             agent_type="SWE-Agent",
-            model_name="ollama:llama3",#="azure:gpt4",
+            model_name="gpt4",#="azure:gpt4",
             agent_path:str="/Users/whilebug/Desktop/Projects/SWE-agent",
             username:str="whilebug"
     ):
@@ -72,6 +72,17 @@ class AgentFrontend:
         agent_patch_path = patch_folder_path + "/" + patch_files[0]
         shutil.copy(agent_patch_path, target_patch_path)
         print(issue_name, "patch collected.")
+
+    def judge_finish(
+            self,
+            issue_name
+    ):
+        fix_path = self.swe_config["folder_config"]["path"] + self.swe_config["folder_config"]["prefix"] + issue_name + \
+        self.swe_config["folder_config"]["suffix"]
+        if os.path.exists(fix_path):
+            return True
+        else:
+            return False
 
     def collect_traj(
         self,

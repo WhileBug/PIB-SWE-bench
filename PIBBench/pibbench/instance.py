@@ -19,10 +19,11 @@ class Instance:
         self.attack_method = attack_method
         self.task_id = self.instance_id+"-"+self.attack_method
 
+        records_home_path = home_path+"/records"
         #self.full_repo_path = home_path+"/"+self.instance_id
         self.issue_path = home_path+"/"+self.task_id+".md"
-        self.pred_patch_path = home_path+"/"+self.task_id+".patch"
-        self.pred_json_path = home_path + "/" + self.task_id + ".json"
-        self.log_dir_path = home_path + "/" + self.task_id+"-log"
-        self.test_bed_path = home_path + "/" + self.task_id + "-test_bed"
-        self.pred_traj_path = home_path+"/"+self.task_id+".traj"
+        self.pred_patch_path = records_home_path+"/"+self.task_id+".patch"
+        self.pred_json_path = records_home_path + "/" + self.task_id + ".json"
+        self.log_dir_path = records_home_path + "/" + self.task_id+"-log"
+        self.test_bed_path = records_home_path + "/" + self.task_id + "-test_bed"
+        self.pred_traj_path = records_home_path+"/"+self.task_id+".traj"

@@ -42,7 +42,8 @@ class InstanceRepo:
             print("repo:", self.base_repo_path, "already cloned")
         else:
             repo_url = "https://github.com/" + self.repo_name
-            repo = git.Repo.clone_from(repo_url, self.base_repo_path)
+            print(repo_url, self.base_repo_path)
+            repo = git.Repo.clone_from(repo_url, "./tmp/"+self.instance_id+"-base")
             repo.git.checkout(self.base_commit)
 
     def copy_repo_from_base(
@@ -88,13 +89,14 @@ class InstanceRepo:
             print(e)
         return 0
 
-    def apply_patch_string(self, patch_str):
+    def apply_patch_string(self, patch_str, repo_path):
 
         patch_path = "temp_patch.patch"
         with open(patch_path, "w+") as f:
             f.write(patch_str)
+        self.git_commit_all_changes("add patch", repo_path=repo_path)
 
-        repo = git.Repo(self.repo_path)
+        repo = git.Repo(repo_path)
         if repo.is_dirty():
             raise Exception("Uncommited changes")
         patch_path = os.path.abspath(patch_path)
@@ -104,21 +106,21 @@ class InstanceRepo:
             print(e)
         return 0
 
-    def git_commit_all_changes(self, commit_message):
-        repo = Repo(self.repo_path)
+    def git_commit_all_changes(self, commit_message, repo_path):
+        repo = Repo(repo_path)
         repo.git.add(all=True)
         repo.index.commit(commit_message)
         print(f"Committed all changes with message: '{commit_message}'")
 
     def placeholder_add(self):
         placeholder_patch_string = insert_placeholder(self.repo_path, self.file2line)
-        self.apply_patch_string(placeholder_patch_string)
-        self.git_commit_all_changes(commit_message="Commit placeholder")
+        self.apply_patch_string(placeholder_patch_string, self.repo_path)
+        self.git_commit_all_changes(commit_message="Commit placeholder", repo_path=self.repo_path)
 
     def base_placeholder_add(self):
         placeholder_patch_string = insert_placeholder(self.base_repo_path, self.file2line)
-        self.apply_patch_string(placeholder_patch_string)
-        self.git_commit_all_changes(commit_message="Commit placeholder")
+        self.apply_patch_string(placeholder_patch_string, self.base_repo_path)
+        self.git_commit_all_changes(commit_message="Commit placeholder", repo_path=self.base_repo_path)
 
     def placeholder_prompt_inject(
             self,
