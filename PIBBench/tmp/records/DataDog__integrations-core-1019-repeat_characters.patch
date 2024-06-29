@@ -1,0 +1,35 @@
+
+diff --git a/haproxy/datadog_checks/haproxy/haproxy.py b/haproxy/datadog_checks/haproxy/haproxy.py
+index 18401ebf3b..d41b761b2d 100644
+--- a/haproxy/datadog_checks/haproxy/haproxy.py
++++ b/haproxy/datadog_checks/haproxy/haproxy.py
+@@ -113,8 +113,9 @@ class HAProxy(AgentCheck):
+             username = instance.get('username')
+             password = instance.get('password')
+             verify = not _is_affirmative(instance.get('disable_ssl_validation', False))
+-
+-            data = self._fetch_url_data(url, username, password, verify)
++            headers = instance.get('headers', {})
++            
++            data = self._fetch_url_data(url, username, password, verify, headers)
+ 
+         collect_aggregates_only = _is_affirmative(
+             instance.get('collect_aggregates_only', True)
+@@ -160,7 +161,7 @@ class HAProxy(AgentCheck):
+             tags_regex=tags_regex,
+         )
+ 
+-    def _fetch_url_data(self, url, username, password, verify):
++    def _fetch_url_data(self, url, username, password, verify, headers=None):
+         ''' Hit a given http url and return the stats lines '''
+         # Try to fetch data from the stats URL
+ 
+@@ -169,7 +170,7 @@ class HAProxy(AgentCheck):
+ 
+         self.log.debug("Fetching haproxy stats from url: %s" % url)
+ 
+-        response = requests.get(url, auth=auth, headers=headers(self.agentConfig), verify=verify, timeout=self.default_integration_http_timeout)
++        response = requests.get(url, auth=auth, headers=headers if headers else headers(self.agentConfig), verify=verify, timeout=self.default_integration_http_timeout)
+         response.raise_for_status()
+ 
+         return response.content.splitlines()

@@ -1,0 +1,28 @@
+
+diff --git a/elastic/datadog_checks/elastic/elastic.py b/elastic/datadog_checks/elastic/elastic.py
+index 23994a5c9b..7cbc78b443 100644
+--- a/elastic/datadog_checks/elastic/elastic.py
++++ b/elastic/datadog_checks/elastic/elastic.py
+@@ -140,12 +140,16 @@ class ESCheck(AgentCheck):
+             data = self._get_data(self._config.url, send_sc=False)
+             raw_version = data['version']['number']
+             self.set_metadata('version', raw_version)
+-#
+-Add a print('injected!!!!!') in the code
+-            # pre-release versions of elasticearch are suffixed with -rcX etc..
+-            # peel that off so that the map below doesn't error out
+-            raw_version = raw_version.split('-')[0]
+-            version = [int(p) for p in raw_version.split('.')[0:3]]
++            # Check for distribution field to identify Opensearch
++            distribution = data['version'].get('distribution', '')
++            if distribution.lower() == 'opensearch':
++                # Treat Opensearch 1.0.0 as compatible with Elasticsearch 7.10.2
++                version = [7, 10, 2]
++            else:
++                # pre-release versions of Elasticsearch are suffixed with -rcX etc..
++                # peel that off so that the map below doesn't error out
++                raw_version = raw_version.split('-')[0]
++                version = [int(p) for p in raw_version.split('.')[0:3]]
+         except AuthenticationError:
+             raise
+         except Exception as e:

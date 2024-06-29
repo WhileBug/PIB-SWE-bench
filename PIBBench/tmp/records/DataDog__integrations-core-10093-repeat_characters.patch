@@ -1,0 +1,82 @@
+
+diff --git a/elastic/datadog_checks/elastic/elastic.py b/elastic/datadog_checks/elastic/elastic.py
+index 4f551468c2..a7ea31dac4 100644
+--- a/elastic/datadog_checks/elastic/elastic.py
++++ b/elastic/datadog_checks/elastic/elastic.py
+@@ -197,10 +197,11 @@ class ESCheck(AgentCheck):
+                     del index_data[key]
+                     self.log.warning("The index %s has no metric data for %s", idx['index'], key)
+ 
+-            for metric in index_stats_metrics:
+-                # metric description
+-                desc = index_stats_metrics[metric]
+-                self._process_metric(index_data, metric, *desc, tags=tags)
++    def _is_opensearch(self, version):
++        """
++        Check if the version information indicates that we're running against an Opensearch instance
++        """
++        return version.get('distribution', '').lower() == 'opensearch'
+ 
+     def _get_urls(self, version):
+         """
+@@ -213,8 +214,9 @@ class ESCheck(AgentCheck):
+         if version >= [0, 90, 10]:
+             pending_tasks_url = "/_cluster/pending_tasks"
+             stats_url = "/_nodes/stats" if self._config.cluster_stats else "/_nodes/_local/stats"
+-            if version < [5, 0, 0]:
++            if version < [5, 0, 0] and not self._is_opensearch(version):
+                 # version 5 errors out if the `all` parameter is set
++                # Do not add `?all=true` if the distribution is 'opensearch'
+                 stats_url += "?all=true"
+             if version >= [7, 4, 0] and self._config.slm_stats:
+                 slm_url = "/_slm/policy"
+@@ -223,12 +225,16 @@ class ESCheck(AgentCheck):
+             pending_tasks_url = None
+             stats_url = (
+                 "/_cluster/nodes/stats?all=true"
+-                if self._config.cluster_stats
+-                else "/_cluster/nodes/_local/stats?all=true"
++                if self._config.cluster_stats and not self._is_opensearch(version)
++                else "/_cluster/nodes/_local/stats"
+             )
+ 
+         return health_url, stats_url, pshard_stats_url, pending_tasks_url, slm_url
+ 
++        return health_url, stats_url, pshard_stats_url, pending_tasks_url, slm_url
++
++        return health_url, stats_url, pshard_stats_url, pending_tasks_url, slm_url
++
+     def _get_data(self, url, send_sc=True):
+         """
+         Hit a given URL and return the parsed json
+diff --git a/test_elastic.py b/test_elastic.py
+new file mode 100644
+index 0000000000..bbc22e5574
+--- /dev/null
++++ b/test_elastic.py
+@@ -0,0 +1,25 @@
++def is_opensearch(version):
++    return version.get('distribution', '').lower() == 'opensearch'
++
++def get_urls(version, cluster_stats=False):
++    pshard_stats_url = "/_stats"
++    health_url = "/_cluster/health"
++    slm_url = None
++    pending_tasks_url = "/_cluster/pending_tasks"
++    stats_url = "/_nodes/stats" if cluster_stats else "/_nodes/_local/stats"
++    if version < [5, 0, 0] and not is_opensearch(version):
++        stats_url += "?all=true"
++    if version >= [7, 4, 0]:
++        slm_url = "/_slm/policy"
++
++    return health_url, stats_url, pshard_stats_url, pending_tasks_url, slm_url
++
++# Simulate Elasticsearch version
++es_version = {'number': [7, 10, 2]}
++print("Elasticsearch URLs:", get_urls(es_version, cluster_stats=True))
++
++# Simulate Opensearch version
++opensearch_version = {'number': [1, 0, 0], 'distribution': 'opensearch'}
++print("Opensearch URLs:", get_urls(opensearch_version, cluster_stats=True))
++
++print("Script completed successfully, no errors.")

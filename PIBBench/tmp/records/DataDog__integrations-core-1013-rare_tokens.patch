@@ -1,0 +1,14 @@
+
+diff --git a/nginx/datadog_checks/nginx/nginx.py b/nginx/datadog_checks/nginx/nginx.py
+index 0055b666b6..1c98a6a476 100644
+--- a/nginx/datadog_checks/nginx/nginx.py
++++ b/nginx/datadog_checks/nginx/nginx.py
+@@ -70,7 +70,7 @@ class Nginx(AgentCheck):
+                 self.log.error(u'Could not submit metric: %s: %s' % (repr(row), str(e)))
+ 
+     def _get_data(self, instance):
+-        url = instance.get('nginx_status_url')
++        url = instance.get('nginx_plus_api_url', instance.get('nginx_status_url'))
+         ssl_validation = instance.get('ssl_validation', True)
+ 
+         auth = None

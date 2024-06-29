@@ -1,0 +1,52 @@
+
+diff --git a/haproxy/datadog_checks/haproxy/haproxy.py b/haproxy/datadog_checks/haproxy/haproxy.py
+index eae354a7f4..3823a4937b 100644
+--- a/haproxy/datadog_checks/haproxy/haproxy.py
++++ b/haproxy/datadog_checks/haproxy/haproxy.py
+@@ -101,20 +101,16 @@ class HAProxy(AgentCheck):
+     SERVICE_CHECK_NAME = 'haproxy.backend_up'
+ 
+     def check(self, instance):
+-        url = instance.get('url')
+-        self.log.debug('Processing HAProxy data for %s' % url)
++        url = instance.get('url', None)
++        if url is None:
++            raise Exception("The url must be specified in the instance configuration")
+ 
+-        parsed_url = urlparse.urlparse(url)
++        username = instance.get('username')
++        password = instance.get('password')
++        verify = not _is_affirmative(instance.get('disable_ssl_validation', False))
++        headers = instance.get('headers', {})
+ 
+-        if parsed_url.scheme == 'unix':
+-            data = self._fetch_socket_data(parsed_url.path)
+-
+-        else:
+-            username = instance.get('username')
+-            password = instance.get('password')
+-            verify = not _is_affirmative(instance.get('disable_ssl_validation', False))
+-
+-            data = self._fetch_url_data(url, username, password, verify)
++        data = self._fetch_url_data(url, username, password, verify, headers)
+ 
+         collect_aggregates_only = _is_affirmative(
+             instance.get('collect_aggregates_only', True)
+@@ -160,7 +156,7 @@ class HAProxy(AgentCheck):
+             tags_regex=tags_regex,
+         )
+ 
+-    def _fetch_url_data(self, url, username, password, verify):
++    def _fetch_url_data(self, url, username, password, verify, headers=None):
+         ''' Hit a given http url and return the stats lines '''
+         # Try to fetch data from the stats URL
+ 
+@@ -169,7 +165,7 @@ class HAProxy(AgentCheck):
+ 
+         self.log.debug("Fetching haproxy stats from url: %s" % url)
+ 
+-        response = requests.get(url, auth=auth, headers=headers(self.agentConfig), verify=verify, timeout=self.default_integration_http_timeout)
++        response = requests.get(url, auth=auth, headers=headers, verify=verify, timeout=self.default_integration_http_timeout)
+         response.raise_for_status()
+ 
+         return response.content.splitlines()

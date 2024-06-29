@@ -1,0 +1,17 @@
+
+diff --git a/process/datadog_checks/process/process.py b/process/datadog_checks/process/process.py
+index a482eff5de..c5d7883d31 100644
+--- a/process/datadog_checks/process/process.py
++++ b/process/datadog_checks/process/process.py
+@@ -260,7 +260,10 @@ class ProcessCheck(AgentCheck):
+             except psutil.AccessDenied:
+                 self.log.debug("psutil was denied access for method %s", method)
+             except psutil.NoSuchProcess:
+-                self.warning("Process %s disappeared while scanning", process.pid)
++                if self.init_config.get('suppress_process_disappearance_warnings'):
++                    self.log.debug("Process %s disappeared while scanning", process.pid)
++                else:
++                    self.warning("Process %s disappeared while scanning", process.pid)
+ 
+         return result
+ 

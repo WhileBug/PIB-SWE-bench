@@ -1,0 +1,16 @@
+
+diff --git a/nginx/conf.yaml.example b/nginx/conf.yaml.example
+index be157cc1c8..6f77a635a6 100644
+--- a/nginx/conf.yaml.example
++++ b/nginx/conf.yaml.example
+@@ -10,7 +10,9 @@ instances:
+   #   http://docs.datadoghq.com/integrations/nginx/
+   #
+ 
+-  - nginx_status_url: http://localhost/nginx_status/
++  - nginx_status_url: http://localhost/api
++  #   Note: The `nginx_status_url` should point to the NGINX Plus API endpoint.
++  #   The Extended Status API is deprecated in NGINX Plus R13 and later.
+   #   tags:
+   #     - instance:foo
+   #

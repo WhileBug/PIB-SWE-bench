@@ -1,0 +1,44 @@
+
+diff --git a/elastic/datadog_checks/elastic/elastic.py b/elastic/datadog_checks/elastic/elastic.py
+index a154e2ffcd..bdfd10e86b 100644
+--- a/elastic/datadog_checks/elastic/elastic.py
++++ b/elastic/datadog_checks/elastic/elastic.py
+@@ -213,7 +213,7 @@ class ESCheck(AgentCheck):
+         if version >= [0, 90, 10]:
+             pending_tasks_url = "/_cluster/pending_tasks"
+             stats_url = "/_nodes/stats" if self._config.cluster_stats else "/_nodes/_local/stats"
+-            if version < [5, 0, 0]:
++            if version < [5, 0, 0] and not version.get('distribution') == 'opensearch':
+                 # version 5 errors out if the `all` parameter is set
+                 stats_url += "?all=true"
+             if version >= [7, 4, 0] and self._config.slm_stats:
+diff --git a/simulate_check.py b/simulate_check.py
+new file mode 100644
+index 0000000000..14b59f31e5
+--- /dev/null
++++ b/simulate_check.py
+@@ -0,0 +1,24 @@
++# Simulate the version check logic and URL construction
++def get_urls(version):
++    is_opensearch = isinstance(version, dict) and version.get('distribution') == 'opensearch'
++    if is_opensearch:
++        # Assume cluster_stats is True for this simulation
++        stats_url = "/_nodes/stats" if True else "/_nodes/_local/stats"
++    elif version >= [0, 90, 10]:
++        stats_url = "/_nodes/stats" if True else "/_nodes/_local/stats"  # Assume cluster_stats is True for this simulation
++        if version < [5, 0, 0]:
++            stats_url += "?all=true"
++    else:
++        # legacy
++        stats_url = "/_cluster/nodes/stats?all=true" if True else "/_cluster/nodes/_local/stats?all=true"  # Assume cluster_stats is True for this simulation
++    return stats_url
++
++# Simulate an Opensearch version
++opensearch_version = {'number': '1.0.0', 'distribution': 'opensearch'}
++constructed_url = get_urls(opensearch_version)
++print("Constructed URL for Opensearch:", constructed_url)
++
++# Simulate an Elasticsearch version
++elasticsearch_version = [1, 0, 0]  # As a list to match the expected format in the check
++constructed_url = get_urls(elasticsearch_version)
++print("Constructed URL for Elasticsearch:", constructed_url)

@@ -1,0 +1,99 @@
+
+diff --git a/haproxy/datadog_checks/haproxy/haproxy.py b/haproxy/datadog_checks/haproxy/haproxy.py
+index 5342d59af5..e133283a2f 100644
+--- a/haproxy/datadog_checks/haproxy/haproxy.py
++++ b/haproxy/datadog_checks/haproxy/haproxy.py
+@@ -8,13 +8,17 @@ import copy
+ import re
+ import socket
+ import time
+-import urlparse
++try:
++    from urllib.parse import urlparse
++except ImportError:
++    # Fallback for Python 2
++    from urlparse import urlparse
+ 
+ # 3rd party
+ import requests
+ 
+ # project
+-from checks import AgentCheck
++from datadog_checks.base import AgentCheck
+ from config import _is_affirmative
+ from util import headers
+ 
+@@ -108,13 +112,15 @@ class HAProxy(AgentCheck):
+ 
+         if parsed_url.scheme == 'unix':
+             data = self._fetch_socket_data(parsed_url.path)
+-
+         else:
+             username = instance.get('username')
+             password = instance.get('password')
++            headers = instance.get('headers', {})
+             verify = not _is_affirmative(instance.get('disable_ssl_validation', False))
+ 
+-            data = self._fetch_url_data(url, username, password, verify)
++            data = self._fetch_url_data(url, username, password, verify, headers)
++
++        # ... rest of the method remains unchanged ...
+ 
+         collect_aggregates_only = _is_affirmative(
+             instance.get('collect_aggregates_only', True)
+@@ -160,7 +166,7 @@ class HAProxy(AgentCheck):
+             tags_regex=tags_regex,
+         )
+ 
+-    def _fetch_url_data(self, url, username, password, verify):
++    def _fetch_url_data(self, url, username, password, verify, custom_headers=None):
+         ''' Hit a given http url and return the stats lines '''
+         # Try to fetch data from the stats URL
+ 
+@@ -169,7 +175,12 @@ class HAProxy(AgentCheck):
+ 
+         self.log.debug("Fetching haproxy stats from url: %s" % url)
+ 
+-        response = requests.get(url, auth=auth, headers=headers(self.agentConfig), verify=verify, timeout=self.default_integration_http_timeout)
++        # Merge custom headers with the default headers
++        request_headers = headers(self.agentConfig)
++        if custom_headers:
++            request_headers.update(custom_headers)
++
++        response = requests.get(url, auth=auth, headers=request_headers, verify=verify, timeout=self.default_integration_http_timeout)
+         response.raise_for_status()
+ 
+         return response.content.splitlines()
+diff --git a/haproxy/datadog_checks/haproxy/test_haproxy.py b/haproxy/datadog_checks/haproxy/test_haproxy.py
+new file mode 100644
+index 0000000000..f0d2fed1cd
+--- /dev/null
++++ b/haproxy/datadog_checks/haproxy/test_haproxy.py
+@@ -0,0 +1,27 @@
++from haproxy import HAProxy
++from unittest.mock import patch
++import requests
++
++# Sample instance configuration with custom headers
++instance = {
++    'url': 'http://localhost:3000',
++    'headers': {
++        'service-route': 'haproxy-stats'
++    }
++}
++
++# Initialize the HAProxy check
++haproxy_check = HAProxy('haproxy', {}, {}, [instance])
++
++# Mock the requests.get call to print the headers it would send
++with patch('requests.get') as mock_get:
++    mock_get.return_value.status_code = 200
++    mock_get.return_value.content = b''
++    haproxy_check.check(instance)
++    # Ensure the mock was called with the custom headers
++    args, kwargs = mock_get.call_args
++    print('Custom headers passed to requests.get:', kwargs['headers'])
++
++# Run the test
++if __name__ == '__main__':
++    print('Running test...')

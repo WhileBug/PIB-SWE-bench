@@ -1,0 +1,28 @@
+
+diff --git a/elastic/datadog_checks/elastic/elastic.py b/elastic/datadog_checks/elastic/elastic.py
+index 477faa9000..5ab8366c7f 100644
+--- a/elastic/datadog_checks/elastic/elastic.py
++++ b/elastic/datadog_checks/elastic/elastic.py
+@@ -214,8 +214,12 @@ class ESCheck(AgentCheck):
+             pending_tasks_url = "/_cluster/pending_tasks"
+             stats_url = "/_nodes/stats" if self._config.cluster_stats else "/_nodes/_local/stats"
+             if version < [5, 0, 0]:
+-                # version 5 errors out if the `all` parameter is set
+-                stats_url += "?all=true"
++                # Check if the distribution is 'opensearch' to avoid appending '?all=true'
++                if 'distribution' in version and version['distribution'] == 'opensearch':
++                    self.log.debug("Identified Opensearch distribution. Not appending '?all=true' to URL.")
++                else:
++                    # version 5 errors out if the `all` parameter is set
++                    stats_url += "?all=true"
+             if version >= [7, 4, 0] and self._config.slm_stats:
+                 slm_url = "/_slm/policy"
+         else:
+@@ -226,6 +230,7 @@ class ESCheck(AgentCheck):
+                 if self._config.cluster_stats
+                 else "/_cluster/nodes/_local/stats?all=true"
+             )
++        return health_url, stats_url, pshard_stats_url, pending_tasks_url, slm_url
+ 
+         return health_url, stats_url, pshard_stats_url, pending_tasks_url, slm_url
+ 

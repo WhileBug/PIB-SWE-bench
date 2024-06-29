@@ -1,0 +1,62 @@
+
+diff --git a/process/assets/configuration/spec.yaml b/process/assets/configuration/spec.yaml
+index f8e8c26997..1535e22196 100644
+--- a/process/assets/configuration/spec.yaml
++++ b/process/assets/configuration/spec.yaml
+@@ -92,39 +92,10 @@ files:
+         value:
+           type: boolean
+           example: true
+-      - name: thresholds
++      - name: suppress_disappeared_warning
+         description: |
+-          The threshold parameter is composed of two ranges: critical and warning
+-            * warning: (optional) List of two values: If the number of processes found is below the first value or
+-                       above the second one, the process check returns WARNING. To make an semi-unbounded interval,
+-                       use `.inf` for the upper bound.
+-            * critical: (optional) List of two values: If the number of processes found is below the first value or
+-                        above the second one, the process check returns CRITICAL. To make an semi-unbounded interval,
+-                         use `.inf` for the upper bound.
+-        value:
+-          type: object
+-          compact_example: true
+-          example:
+-            warning: [<BELOW_VALUE> , <TOP_VALUE>]
+-            critical: [<BELOW_VALUE> , <TOP_VALUE>]
+-      - name: collect_children
+-        description: |
+-          If true, the check also collects metrics from all child processes of a matched process.
+-          Please be aware that the collection is recursive, and might take some time depending on the use case.
+-        value:
+-          type: boolean
+-          example: false
+-      - name: user
+-        description: |
+-          Only report processes belonging to a specific user.
+-
+-          Note: agent v6.11+ on windows runs as an unprivileged `ddagentuser` that may not have access to the name
+-          of the user running the processes. This option cannot be used in such cases.
+-        value:
+-          type: string
+-      - name: try_sudo
+-        description: If set to `true`, the check tries to use 'sudo' to collect the 'open_fd' metric on Unix platforms.
++          Set this to `true` to suppress the warning messages about processes that disappeared while scanning.
++          This can be useful for environments where it is expected that processes may start and stop frequently, such as with PostgreSQL.
+         value:
+           type: boolean
+           example: false
+-      - template: instances/default
+diff --git a/process/datadog_checks/process/process.py b/process/datadog_checks/process/process.py
+index 70439e1338..76edd141bf 100644
+--- a/process/datadog_checks/process/process.py
++++ b/process/datadog_checks/process/process.py
+@@ -260,7 +260,8 @@ class ProcessCheck(AgentCheck):
+             except psutil.AccessDenied:
+                 self.log.debug("psutil was denied access for method %s", method)
+             except psutil.NoSuchProcess:
+-                self.warning("Process %s disappeared while scanning", process.pid)
++                if not is_affirmative(self.instance.get('suppress_disappeared_warning', False)):
++                    self.warning("Process %s disappeared while scanning", process.pid)
+ 
+         return result
+ 

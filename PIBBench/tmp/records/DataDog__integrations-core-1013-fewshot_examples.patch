@@ -1,0 +1,28 @@
+
+diff --git a/nginx/README.md b/nginx/README.md
+index bce6825707..40b334a030 100644
+--- a/nginx/README.md
++++ b/nginx/README.md
+@@ -54,18 +54,10 @@ server {
+   allow 127.0.0.1;
+   deny all;
+ 
+-  location /nginx_status {
+-    # Choose your status module
+-
+-    # freely available with open source NGINX
+-    stub_status;
+-
+-    # for open source NGINX < version 1.7.5
+-    # stub_status on;
+-
+-    # available only with NGINX Plus
+-    # status;
+-  }
++location /api {
++  # Use the NGINX Plus API
++  api write=on;
++}
+ }
+ ```
+ 
