@@ -168,7 +168,6 @@ cython_debug/
 .vscode/
 *.jsonl
 *.jsonl.*
-*.patch
 *.DS_Store
 analysis/**/*.json
 analysis/**/scratch*
@@ -179,3 +178,9 @@ data/repos/copies
 notebooks/
 /PIBBench/original_data/
 /PIBBench/pibdataset/
+/PIBBench/tmp/DataDog__integrations-core-11210-base/
+/PIBBench/tmp/DataDog__integrations-core-10414-base/
+/PIBBench/tmp/DataDog__integrations-core-10093-base/
+/PIBBench/tmp/DataDog__integrations-core-10093/
+/PIBBench/tmp/DataDog__integrations-core-1019-base/
+/PIBBench/tmp/DataDog__integrations-core-1013-base/

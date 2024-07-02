@@ -1,0 +1,65 @@
+
+diff --git a/nginx/conf.yaml.example b/nginx/conf.yaml.example
+index be157cc1c8..fb16dc72d4 100644
+--- a/nginx/conf.yaml.example
++++ b/nginx/conf.yaml.example
+@@ -1,20 +1,20 @@
+ init_config:
+ 
+ instances:
+-  # For every instance, you need an `nginx_status_url` and can optionally
+-  # supply a list of tags.  This plugin requires nginx to be compiled with
+-  # the nginx stub status module option, and activated with the correct
+-  # configuration stanza.  On debian/ubuntu, this is included in the
+-  # `nginx-extras` package.  For more details, see:
++  # For every instance, you need an `nginx_status_url` which points to the NGINX Plus API endpoint
++  # and can optionally supply a list of tags. This plugin requires NGINX Plus R13 or higher.
++  # The NGINX Plus API replaces the previously used Extended Status API.
++  # For more details, see:
++  #
++  #   https://www.nginx.com/blog/nginx-plus-r13-released/
+   #
+   #   http://docs.datadoghq.com/integrations/nginx/
+   #
+-
+-  - nginx_status_url: http://localhost/nginx_status/
++  - nginx_status_url: http://localhost/api/6/http/keyvals
+   #   tags:
+   #     - instance:foo
+   #
+-  # - nginx_status_url: http://example2.com:1234/nginx_status/
++  # - nginx_status_url: http://example2.com:1234/api/6/http/keyvals
+   #   ssl_validation: False
+   
+   #   If the status page is behind basic auth. 
+diff --git a/nginx/datadog_checks/nginx/nginx.py b/nginx/datadog_checks/nginx/nginx.py
+index 66a681233d..12bc021c08 100644
+--- a/nginx/datadog_checks/nginx/nginx.py
++++ b/nginx/datadog_checks/nginx/nginx.py
+@@ -25,19 +25,16 @@ UPSTREAM_RESPONSE_CODES_SEND_AS_COUNT = [
+ ]
+ 
+ class Nginx(AgentCheck):
+-    """Tracks basic nginx metrics via the status module
++    """
++    Tracks basic nginx metrics via the NGINX Plus API
+     * number of connections
+-    * number of requets per second
+-
+-    Requires nginx to have the status option compiled.
+-    See http://wiki.nginx.org/HttpStubStatusModule for more details
++    * number of requests per second
+ 
+-    $ curl http://localhost:81/nginx_status/
+-    Active connections: 8
+-    server accepts handled requests
+-     1156958 1156958 4491319
+-    Reading: 0 Writing: 2 Waiting: 6
++    Requires NGINX Plus R13 or higher.
++    See https://www.nginx.com/blog/nginx-plus-r13-released/ for more details
+ 
++    NOTE: The Extended Status API is deprecated as of NGINX Plus R13.
++    This integration has been updated to use the new NGINX Plus API.
+     """
+     def check(self, instance):
+         if 'nginx_status_url' not in instance:

@@ -1,0 +1,30 @@
+
+diff --git a/nginx/datadog_checks/nginx/nginx.py b/nginx/datadog_checks/nginx/nginx.py
+index 8782e44ba5..3dbf571890 100644
+--- a/nginx/datadog_checks/nginx/nginx.py
++++ b/nginx/datadog_checks/nginx/nginx.py
+@@ -40,12 +40,12 @@ class Nginx(AgentCheck):
+ 
+     """
+     def check(self, instance):
+-        if 'nginx_status_url' not in instance:
+-            raise Exception('NginX instance missing "nginx_status_url" value.')
++        if 'nginx_plus_api_url' not in instance:
++            raise Exception('NginX instance missing "nginx_plus_api_url" value.')
+         tags = instance.get('tags', [])
+ 
+         response, content_type = self._get_data(instance)
+-        self.log.debug(u"Nginx status `response`: {0}".format(response))
++        self.log.debug(u"Nginx Plus API `response`: {0}".format(response))
+         self.log.debug(u"Nginx status `content_type`: {0}".format(content_type))
+ 
+         if content_type.startswith('application/json'):
+@@ -70,7 +70,7 @@ class Nginx(AgentCheck):
+                 self.log.error(u'Could not submit metric: %s: %s' % (repr(row), str(e)))
+ 
+     def _get_data(self, instance):
+-        url = instance.get('nginx_status_url')
++        url = instance.get('nginx_plus_api_url')
+         ssl_validation = instance.get('ssl_validation', True)
+ 
+         auth = None

@@ -1,0 +1,20 @@
+
+diff --git a/nginx/datadog_checks/nginx/nginx.py b/nginx/datadog_checks/nginx/nginx.py
+index d8c264667e..80eed240bc 100644
+--- a/nginx/datadog_checks/nginx/nginx.py
++++ b/nginx/datadog_checks/nginx/nginx.py
+@@ -71,7 +71,7 @@ class Nginx(AgentCheck):
+                 self.log.error(u'Could not submit metric: %s: %s' % (repr(row), str(e)))
+ 
+     def _get_data(self, instance):
+-        url = instance.get('nginx_status_url')
++        url = instance.get('nginx_status_url', 'http://example.com/api/6/http')  # Update to actual NGINX Plus API endpoint as per documentation
+         ssl_validation = instance.get('ssl_validation', True)
+ 
+         auth = None
+@@ -193,4 +193,4 @@ class Nginx(AgentCheck):
+         elif isinstance(val, (int, float)):
+             output.append((metric_base, val, tags, 'gauge'))
+ 
+-        return output
++        # TODO: Update documentation and configuration examples to reflect the new NGINX Plus API endpoint and any other changes.

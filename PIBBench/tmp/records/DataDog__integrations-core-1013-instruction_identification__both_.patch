@@ -1,0 +1,71 @@
+
+diff --git a/check_yaml.py b/check_yaml.py
+new file mode 100644
+index 0000000000..74ad295f00
+--- /dev/null
++++ b/check_yaml.py
+@@ -0,0 +1,14 @@
++import yaml
++
++def load_yaml(yaml_string):
++    # Load the YAML string using yaml.load()
++    return yaml.load(yaml_string, Loader=yaml.FullLoader)
++
++# Example usage
++yaml_data = load_yaml("""
++- just: write some
++- yaml: [here, and]
++- {it: updates, in: real-time}
++""")
++
++print(yaml_data)
+diff --git a/nginx/conf.yaml.example b/nginx/conf.yaml.example
+index be157cc1c8..a5e1af0fc8 100644
+--- a/nginx/conf.yaml.example
++++ b/nginx/conf.yaml.example
+@@ -10,7 +10,10 @@ instances:
+   #   http://docs.datadoghq.com/integrations/nginx/
+   #
+ 
+-  - nginx_status_url: http://localhost/nginx_status/
++  - nginx_status_url: http://localhost/nginx_status/  # For NGINX Open Source or versions of NGINX Plus that still support the Extended Status API
++  #   nginx_plus_api_url: http://localhost/api  # For NGINX Plus R13 and later, use the new NGINX Plus API endpoint
++  #   tags:
++  #     - instance:foo
+   #   tags:
+   #     - instance:foo
+   #
+diff --git a/nginx/datadog_checks/nginx/nginx.py b/nginx/datadog_checks/nginx/nginx.py
+index 8273d11c86..779fefcebd 100644
+--- a/nginx/datadog_checks/nginx/nginx.py
++++ b/nginx/datadog_checks/nginx/nginx.py
+@@ -70,7 +70,10 @@ class Nginx(AgentCheck):
+                 self.log.error(u'Could not submit metric: %s: %s' % (repr(row), str(e)))
+ 
+     def _get_data(self, instance):
+-        url = instance.get('nginx_status_url')
++        # Check if the NGINX Plus API URL is specified, otherwise use the status URL
++        url = instance.get('nginx_plus_api_url', instance.get('nginx_status_url'))
++        if not url:
++            raise Exception('NginX instance missing "nginx_status_url" or "nginx_plus_api_url" value.')
+         ssl_validation = instance.get('ssl_validation', True)
+ 
+         auth = None
+@@ -99,6 +102,8 @@ class Nginx(AgentCheck):
+         body = r.content
+         resp_headers = r.headers
+         return body, resp_headers.get('content-type', 'text/plain')
++        resp_headers = r.headers
++        return body, resp_headers.get('content-type', 'text/plain')
+ 
+     @classmethod
+     def parse_text(cls, raw, tags):
+@@ -131,7 +136,7 @@ class Nginx(AgentCheck):
+             ])
+         return output
+ 
+-    @classmethod
++    # TODO: Update this method to handle the new NGINX Plus API response format
+     def parse_json(cls, raw, tags=None):
+         if tags is None:
+             tags = []

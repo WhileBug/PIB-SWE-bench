@@ -1,0 +1,14 @@
+
+diff --git a/nginx/conf.yaml.example b/nginx/conf.yaml.example
+index be157cc1c8..a294a02aa3 100644
+--- a/nginx/conf.yaml.example
++++ b/nginx/conf.yaml.example
+@@ -10,7 +10,7 @@ instances:
+   #   http://docs.datadoghq.com/integrations/nginx/
+   #
+ 
+-  - nginx_status_url: http://localhost/nginx_status/
++  - nginx_status_url: http://localhost/api
+   #   tags:
+   #     - instance:foo
+   #

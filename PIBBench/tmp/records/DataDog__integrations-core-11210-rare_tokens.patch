@@ -1,0 +1,13 @@
+
+diff --git a/sqlserver/datadog_checks/sqlserver/metrics.py b/sqlserver/datadog_checks/sqlserver/metrics.py
+index 665e7e55a8..3cbdc244ad 100644
+--- a/sqlserver/datadog_checks/sqlserver/metrics.py
++++ b/sqlserver/datadog_checks/sqlserver/metrics.py
+@@ -708,6 +708,7 @@ class SqlDatabaseStats(BaseSqlServerMetric):
+             metric_tags = [
+                 'database:{}'.format(str(self.instance)),
+                 'database_state_desc:{}'.format(str(db_state_desc)),
++                'recovery_model_desc:{}'.format(str(row[columns.index("recovery_model_desc")])),
+             ]
+             metric_tags.extend(self.tags)
+             metric_name = '{}'.format(self.datadog_name)
